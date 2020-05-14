@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="./CSS/test.css" />
+    <script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.min.js"></script>
+    <script src="./JS/jQuery.js"></script>
+    <title>Document</title>
+</head>
+<style>
+    .block {
+    
+        width: 81px;
+        height: 20px;
+        position: absolute;
+        opacity: 0.5;
+        background-color: pink;
+    }
+</style>
+<script>
+
+    $(function (){
+        // 滑块效果
+        var block_reset = $(".block");
+        $(".block").hide();
+        $(".menu div").mouseenter(function(){
+            $(".underline").removeClass("underline");
+            $(this).css("cursor", "pointer");
+            $(".block").show().animate({left:  $(this).position().left +'px'},200);
+            $(".block").stop();
+       })
+       $(".menu div").mouseleave(function(){
+                ////滑块 正在做的所有事情停止
+                $(".block").stop();
+                //滑块 回到class .block的标签上
+                $(".block").animate({left: block_reset.position().left + 'px' },2250);
+        });
+        $(".menu div").click(function(){
+            $(this).addClass("underline");
+        })
+
+        //轮播图
+        var num=0;
+        var timer=null;
+        go();
+        $("#slideshow").mouseenter(function(){//实现当鼠标移动到box上时，不执行自动轮播功能
+            clearInterval(timer);//移动进去时清除定时器
+        }).mouseleave(function(){
+            go();//移出后执行go函数
+        });
+        $(".silde-list span").eq(0).css("backgroundColor","white");
+        //页面加载后默认是第一张图，则让第一个导航圆点变为“选中色”。
+        function go(){
+          timer=setInterval(function(){//设置定时器
+                num++;//用一个全局变量来控制图的运动次数
+                if(num>4){//如果移动到了最后一张图，则num赋值1，调整ul边距（相当于初始化）
+                    num=1;
+                    $(".ul_list").css("margin-left","0px");
+                }
+                if(num==4){//由于圆点只有四个，而图片有五张，当移动到第五张图片时，给第一个圆点“选中色”。
+                    $(".silde-list span").css("backgroundColor","transparent");
+                    $(".silde-list span").eq(0).css("backgroundColor","white");
+                }
+                else{//图片运动一次，导航圆点也动态的变换，这里先让所有圆点变为“不选中色”，再让当前圆点变为“选中色”。
+                    $(".silde-list span").css("backgroundColor","transparent");
+                    $(".silde-list span").eq(num).css("backgroundColor","white");
+                }
+                $(".ul_list").animate({"marginLeft":-539*num+"px"},580);//使用animate实行运动功能
+            },2000);
+        }
+
+        $(".span_list span").each(function (index) {//遍历每一个圆点添加点击事件，点击当前圆点则让num值赋为当前圆点的索引
+            $(this).click(function () {
+                num=index;
+                $(".span_list span").css("backgroundColor","transparent");
+                $(".span_list span").eq(num).css("backgroundColor","gray");
+                $(".ul_list").stop().animate({"marginLeft":-539*num+"px"},580);
+            })
+        });
+
+        $(".right_click").click(function(){
+        //右按钮点击事件，每点击一次num++,这里有很多的判断，是用来消除一些BUG的。
+            if(num<=4){num++;}
+            if(num>4){
+                num=1;
+                $(".ul_list").css("margin-left","0px");
+            }
+            if(num==4){
+                $(".span_list span").css("backgroundColor","transparent");
+                $(".span_list span").eq(0).css("backgroundColor","gray");
+            }
+            else{
+                $(".span_list span").css("backgroundColor","transparent");
+                $(".span_list span").eq(num).css("backgroundColor","gray");
+            }
+            $(".ul_list").stop().animate({"marginLeft":-539*num+"px"},580);
+
+        });
+
+        $(".left_click").click(function(){//左按钮点击事件
+            if(num>=0){num--;}
+            if(num<0){
+                num=3;
+                $(".ul_list").css("margin-left","-2800px")
+                $(".span_list span").css("backgroundColor","transparent");
+                $(".span_list span").eq(3).css("backgroundColor","gray");
+            }
+            else{
+                $(".span_list span").css("backgroundColor","transparent");
+                $(".span_list span").eq(num).css("backgroundColor","gray");
+            }
+            $(".ul_list").stop().animate({"marginLeft":-539*num+"px"},580);
+
+        });
+
+
+        $(".left_click").hover(function(){//这里是实现左右按钮的阴影效果显示，用到了hover事件
+            $(".next").css("opacity","1");
+        },function(){
+            $(".next").css("opacity","0.5");
+        });
+
+        $(".right_click").hover(function(){
+            $(".prev").css("opacity","1");
+        },function(){
+            $(".prev").css("opacity","0.5");
+        });
+
+
+
+  //echarts图表数据接口
+        //曲线图
+        $.ajax({
+                    type:'get',
+                    url:'https://edu.telking.com/api/?type=month',
+                    dataType:'json',
+                    success: function (data) {
+                        if (data.code==200) {
+                            var graph =  echarts.init(document.getElementsByClassName('graph')[0]);
+                           
+                            option = {
+            color : [ '#6a7985' ],
+            //标题样式
+            title : {
+                text : '曲线图',
+                textStyle : {
+                    color : 'blue',
+                },
+                left : 'center'
+            },
+            //菜单
+            legend : {
+                show : false
+            },
+            //提示框
+            tooltip : {
+                trigger : 'axis',
+                position : 'top',
+                axisPointer : {
+                    type : 'cross',
+                    label : {
+                        backgroundColor : '#6a7985'
+                    }
+                }
+            },
+            //图形位置
+            grid : {
+                left : '4%',
+                right : '6%',
+                bottom : '4%',
+                top : 80,
+                containLabel : true
+            },
+            //x轴
+            xAxis : [ {
+                type : 'category',
+                //坐标轴两边留白策略，即x轴坐标点开始与结束点位置都不在最边缘
+                boundaryGap : true,
+                axisLine : {
+                    show : true,
+                    //x轴线样式
+                    lineStyle : {
+                        color : '#17273B',
+                        width : 1,
+                        type : 'solid'
+                    }
+                },
+                //x轴字体设置
+                axisLabel : {
+                    show : true,
+                    fontSize : 12,
+                    color : 'black'
+                },
+                data : data.data.xAxis
+            } ],
+            //y轴
+            yAxis : [ {
+                type : 'value',
+                //y轴字体设置
+                axisLabel : {
+                    show : true,
+                    color : 'black',
+                    fontSize : 12
+                },
+                //y轴线设置不显示
+                axisLine : {
+                    show : false
+                },
+                //与x轴平行的线样式
+                splitLine : {
+                    show : true,
+                    lineStyle : {
+                        color : '#17273B',
+                        width : 1,
+                        type : 'solid',
+                    }
+                }
+            } ],
+            series : [ {
+                name : '',
+                type : 'line',
+                //折线平滑
+                smooth : true,
+                symbol : 'circle',
+                symbolSize : 6,
+                //线条样式
+                lineStyle : {
+                    color : {
+                        type : 'linear',
+                        x : 0,
+                        y : 0,
+                        x2 : 0,
+                        y2 : 1,
+                        colorStops : [ {
+                            offset : 0,
+                            // 0% 处的颜色
+                            color : '#6ae6dd'
+                        }, {
+                            offset : 1,
+                            // 100% 处的颜色
+                            color : 'red'
+                        } ],
+                        globalCoord : false
+                    },
+                    width : 2,
+                    type : 'solid',
+                },
+                //折线连接点样式
+                itemStyle : {
+                    color : '#00E5DE'
+                },
+                //折线堆积区域样式
+                areaStyle : {
+                    color : '#004c5E'
+                },
+                data : data.data.series
+            } ]
+        };
+        graph.setOption(option);
+                           
+                        }
+                       
+                    },
+                    error:function(){
+
+                    }
+                })   
+        //圆形图
+        $.ajax({
+            type:'get',
+            url:'https://edu.telking.com/api/?type=week',
+            dataType:'json',
+            success: function (data) {
+                if (data.code==200) {
+                    var circle =  echarts.init(document.getElementsByClassName('circle')[0]);
+                    var circle_data = [];
+                    $.each(data.data,function(k,v){
+                        $.each(data.data.series,function(k1,v1){
+                            var str = '{"value"'+':'+'"'+v1+'"}';
+                            var result = circle_data.some(item=>{
+                                    if(item.value==v1){
+                                    return true;
+                                    } 
+                                })
+                                // console.log(result) // 如果arr数组对象中含有name:'张三',就会返回true，否则返回false
+                                if(!result){ // 如果存在
+                                    circle_data.push(JSON.parse(str))
+                                }
+                            
+                        }) 
+
+                        $.each(data.data.xAxis,function(k2,v2){
+                           $.each(circle_data,function(k3,v3){
+                               v3.name = v2;
+                           })
+                            
+                        }) 
+                    })
+                    var option = {
+                            series : [
+                                {
+                                    name: '访问来源',
+                                    type: 'pie',
+                                    radius: '55%',
+                                    data:circle_data,
+                                }
+                            ]
+                        };
+                        circle.setOption(option);
+                }
+                
+            },
+            error:function(){
+
+            }
+        })   
+
+
+        //柱状图
+        $.ajax({
+            type:'get',
+            url:'https://edu.telking.com/api/?type=week',
+            dataType:'json',
+            success: function (data) {
+                if (data.code==200) {
+                    var histogram =  echarts.init(document.getElementsByClassName('histogram')[0]);
+                    var option = {
+                            title: {
+                                text: '商品数'
+                            },
+                            tooltip: {},
+                            legend: {
+                                data:['柱状图']
+                            },
+                            xAxis: {
+                                data: data.data.xAxis
+                            },
+                            yAxis: {},
+                            series: [{
+                                name: '柱状图',
+                                type: 'bar',
+                                data:  data.data.series
+                            }]
+                        };
+                        histogram.setOption(option);
+                }
+                
+            },
+            error:function(){
+
+            }
+        })   
+
+
+    })
+    
+
+      
+</script>
+<body>
+    <!-- 这是整个页面 -->
+    <div class="all">
+      <div class="head">
+          <div class="logo1">LOGO</div>
+          <div class="square">Log Out</div>
+          <div class="bell"><img src="./img/song.jpg"></div>
+          <div class="setting"><img src="./img/setting.jpg"></div>          
+      </div>
+      <div class="middle"></div>
+      <div class="foot-nav"></div>
+      <div class="foot"></div>
+    <!-- 内容 -->
+      <div class="content">
+           <div class="top">
+               <div class="audience">Audience Overview</div>
+               <div class="roseville-ca">Roseville, CA</div>
+           </div>
+           <div class="head-nav">
+                <div class="menu">
+                    <div class="block"></div>
+                    <div class="underline">DASHBOARD</div>
+                    <div>PROJECTS</div>
+                    <div>CALENDAR</div>
+                    <div>MAILBOX</div>
+                    <div>SETTINGS</div>
+                </div>
+           </div>
+           <div class="slideshow">
+               <div><img  class="prev" src="./img/left.png"></div>
+               <div class="inner">
+                    <ul class="ul_list">
+                        <li> <img  src="./img/beauty11.jpg"> </li>
+                        <li> <img  src="./img/telang.jpg"> </li>
+                        <li> <img  src="./img/laft.png"> </li>
+                        <li> <img  src="./img/yinghe.jpg"> </li>
+                        <li> <img  src="./img/tree.jpg"></li>
+                    </ul> 
+               </div>
+               <div><img  class="next" src="./img/right.png"></div>
+                <div class="silde-list">
+                   <span>o</span>
+                   <span>o</span>
+                   <span>o</span>
+                   <span>o</span>
+                </div> 
+           </div>
+           <div class="request">
+               <div class="one"></div>  
+               <div class="two">
+                    <div class="Support-Requests">Support Requests</div>
+                    <div class="View">View All</div>
+                    <div class="time">time</div> 
+                    <div class="user-name">user-name</div> 
+                    <div class="statute">statute</div>
+             </div>   
+               <div class="three">
+                   <div class="detail1">
+                       <span class="time-specific">9:45pm</span>
+                       <span class="address">info@design.com</span>
+                       <span class="handle">
+                          solved
+                       </span>
+                   </div>
+                   <div class="detail2">
+                    <span class="time-specific">9:45pm</span>
+                    <span class="address">info@design.com</span>
+                    <span class="handle">
+                        solved
+                    </span>
+                   </div>
+               </div>         
+              
+           </div>
+           <hr class="hr">
+
+           <div class="graph"></div>
+           <div class="circle"></div>
+           <div class="histogram"></div>
+           <div class="logo2">LOGO</div>
+           <div class="links">
+                <ul id="first">
+                    <li>TRAVEL</li>
+                    <li>TRAVEL</li>
+                    <li>TRAVEL</li>
+                    <li>TRAVEL</li>
+                </ul>
+                <ul>
+                    <li>TRAVEL</li>
+                    <li>TRAVEL</li>
+                    <li>TRAVEL</li>
+                    <li>TRAVEL</li>
+                </ul>
+                <ul>
+                    <li>TRAVEL</li>
+                    <li>TRAVEL</li>
+                    <li>TRAVEL</li>
+                    <li>TRAVEL</li>
+                </ul>
+                <ul>
+                    <li>TRAVEL</li>
+                    <li>TRAVEL</li>
+                    <li>TRAVEL</li>
+                    <li>TRAVEL</li>
+                </ul>
+                <ul>
+                
+                    <li>TRAVEL</li>
+                    <li>TRAVEL</li>
+                </ul>
+           </div>
+      </div>
+    </div>
+    
+</body>
+</html>
